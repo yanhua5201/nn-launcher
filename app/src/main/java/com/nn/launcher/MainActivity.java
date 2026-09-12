@@ -131,4 +131,94 @@ public class MainActivity extends Activity {
         String cmd =
             "if [ -f " + LOG_FILE + " ]; then\n"
           + "  echo \"==== " + LOG_FILE + " 最后200行 ====\"\n"
-          + "  tail -n 200 " +
+          + "  tail -n 200 " + LOG_FILE + "\n"
+          + "else\n"
+          + "  echo '暂无日志，先点一次「启动」'\n"
+          + "fi\n";
+        runAsRoot(cmd, "日志");
+    }
+
+    private String writeScriptCmd() {
+        String body = readAsset("nn_launcher.sh");
+        if (body.length() == 0) {
+            return "echo '内置脚本缺失，请重装 App'; exit 1\n";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("cat > ").append(SCRIPT).append(" << '").append(HEREDOC).append("'\n");
+        sb.append(body);
+        if (!body.endsWith("\n")) sb.append('\n');
+        sb.append(HEREDOC).append('\n');
+        sb.append("chmod 700 ").append(SCRIPT).append('\n');
+        return sb.toString();
+    }
+
+    private String readAsset(String name) {
+        InputStream in = null;
+        try {
+            in = getAssets().open(name);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buf = new byte[4096];
+            int n;
+            while ((n = in.read(buf)) > 0) bos.write(buf, 0, n);
+            return bos.toString("UTF-8");
+        } catch (Exception e) {
+            return "";
+        } finally {
+            if (in != null) {
+                try { in.close(); } catch (Exception ignored) { }
+            }
+        }
+    }
+
+    private static String q(String s) {
+        if (s == null) s = "";
+        return "'" + s.replace("'", "'\\''") + "'";
+    }
+
+    private void runAsRoot(final String script, final String tag) {
+        new Thread(new Runnable() {
+            public void run() {
+                append("\n$ [" + tag + "]");
+                Process p = null;
+                int code = -1;
+                try {
+                    p = new ProcessBuilder("su").redirectErrorStream(true).start();
+                    OutputStream os = p.getOutputStream();
+                    os.write((script + "\nexit\n").getBytes(StandardCharsets.UTF_8));
+                    os.flush();
+                    os.close();
+
+                    BufferedReader r = new BufferedReader(
+                            new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
+                    String line;
+                    while ((line = r.readLine()) != null) {
+                        append(line);
+                    }
+                    code = p.waitFor();
+                } catch (Exception e) {
+                    append("执行失败: " + e.getMessage());
+                    ui.post(new Runnable() {
+                        public void run() {
+                            Toast.makeText(MainActivity.this,
+                                    "调用 su 失败，确认手机已 root", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } finally {
+                    if (p != null) p.destroy();
+                }
+                append("退出码: " + code);
+            }
+        }, "nn-exec").start();
+    }
+
+private void append(final String line) {
+        ui.post(new Runnable() {
+            public void run() {
+                output.append(line + "\n");
+                scroller.post(new Runnable() {
+                    public void run() { scroller.fullScroll(View.FOCUS_DOWN); }
+                });
+            }
+        });
+    }
+}

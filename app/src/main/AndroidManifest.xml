@@ -3,7 +3,7 @@
 
     <application
         android:allowBackup="false"
-        android:label="嗯嗯启动器"
+        android:label="TAFF"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.Light.DarkActionBar">
 

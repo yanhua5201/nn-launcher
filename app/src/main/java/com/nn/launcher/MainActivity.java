@@ -57,20 +57,20 @@ public class MainActivity extends Activity {
         LinearLayout row1 = new LinearLayout(this);
         row1.setOrientation(LinearLayout.HORIZONTAL);
         row1.addView(btn("启动", new View.OnClickListener() {
-            public void onClick(View v) { onStart(); }
+            public void onClick(View v) { startScript(); }
         }), weight());
         row1.addView(btn("停止", new View.OnClickListener() {
-            public void onClick(View v) { onStop(); }
+            public void onClick(View v) { stopScript(); }
         }), weight());
         root.addView(row1);
 
         LinearLayout row2 = new LinearLayout(this);
         row2.setOrientation(LinearLayout.HORIZONTAL);
         row2.addView(btn("状态", new View.OnClickListener() {
-            public void onClick(View v) { onStatus(); }
+            public void onClick(View v) { showStatus(); }
         }), weight());
         row2.addView(btn("日志", new View.OnClickListener() {
-            public void onClick(View v) { onLog(); }
+            public void onClick(View v) { showLog(); }
         }), weight());
         row2.addView(btn("清屏", new View.OnClickListener() {
             public void onClick(View v) { output.setText(""); }
@@ -109,7 +109,7 @@ public class MainActivity extends Activity {
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
     }
 
-    private void onStart() {
+    private void startScript() {
         String so = soPathInput.getText().toString().trim();
         String key = keyInput.getText().toString().trim();
         String cmd = writeScriptCmd()
@@ -117,17 +117,17 @@ public class MainActivity extends Activity {
         runAsRoot(cmd, "启动");
     }
 
-    private void onStop() {
+    private void stopScript() {
         String cmd = writeScriptCmd() + "sh " + SCRIPT + " stop\n";
         runAsRoot(cmd, "停止");
     }
 
-    private void onStatus() {
+    private void showStatus() {
         String cmd = writeScriptCmd() + "sh " + SCRIPT + " status\n";
         runAsRoot(cmd, "状态");
     }
 
-    private void onLog() {
+    private void showLog() {
         String cmd =
             "if [ -f " + LOG_FILE + " ]; then\n"
           + "  echo \"==== " + LOG_FILE + " 最后200行 ====\"\n"
@@ -199,7 +199,7 @@ public class MainActivity extends Activity {
                     append("执行失败: " + e.getMessage());
                     ui.post(new Runnable() {
                         public void run() {
-                            Toast.makeText(MainActivity.this,
+          Toast.makeText(MainActivity.this,
                                     "调用 su 失败，确认手机已 root", Toast.LENGTH_LONG).show();
                         }
                     });
@@ -211,7 +211,7 @@ public class MainActivity extends Activity {
         }, "nn-exec").start();
     }
 
-private void append(final String line) {
+    private void append(final String line) {
         ui.post(new Runnable() {
             public void run() {
                 output.append(line + "\n");

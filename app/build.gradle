@@ -7,7 +7,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.nn.launcher"
+        applicationId "com.dfm.guanzhutaff"
         minSdk 24
         targetSdk 34
         versionCode 1

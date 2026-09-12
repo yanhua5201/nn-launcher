@@ -3,6 +3,7 @@
 
     <application
         android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
         android:label="TAFF"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.Light.DarkActionBar">
